@@ -89,8 +89,14 @@ def create_default_funnels():
 def send_dispense_event(data):
     """Send dispense event to all connected clients"""
     event_data = f"data: {json.dumps(data)}\n\n"
+    dead_connections = set()
     for connection in active_connections:
-        connection.write(event_data)
+        try:
+            connection.write(event_data)
+        except:
+            dead_connections.add(connection)
+    # Remove any dead connections
+    active_connections.difference_update(dead_connections)
 
 # Routes
 
@@ -210,11 +216,17 @@ def patient_history(patient_id):
 @app.route('/events')
 def events():
     def event_stream():
-        while True:
-            # Keep the connection alive
-            yield "data: {\"type\": \"ping\"}\n\n"
-            import time
-            time.sleep(30)
+        # Add this connection to active_connections
+        active_connections.add(request)
+        try:
+            while True:
+                # Keep the connection alive
+                yield "data: {\"type\": \"ping\"}\n\n"
+                import time
+                time.sleep(30)
+        finally:
+            # Remove connection when client disconnects
+            active_connections.remove(request)
 
     return Response(event_stream(), mimetype='text/event-stream')
 

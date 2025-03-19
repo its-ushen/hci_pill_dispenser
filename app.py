@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import json
-from queue import Queue
+from queue import Queue, Empty
 import time
 
 app = Flask(__name__)
@@ -220,7 +220,7 @@ def events():
                     # Non-blocking queue check
                     message = message_queue.get_nowait()
                     yield f"data: {message}\n\n"
-                except Queue.Empty:
+                except Empty:
                     pass
 
                 time.sleep(3)  # Check every 3 seconds instead of 30

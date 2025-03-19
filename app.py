@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import json
+from queue import Queue
+import time
 
 app = Flask(__name__)
 # Change this to a secure secret key
@@ -10,8 +12,8 @@ app.config['SECRET_KEY'] = 'your-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pill_dispenser.db'
 db = SQLAlchemy(app)
 
-# Store active SSE connections
-active_connections = set()
+# Replace active_connections set with a message queue
+message_queue = Queue()
 
 # Database Models
 
@@ -87,16 +89,8 @@ def create_default_funnels():
 
 
 def send_dispense_event(data):
-    """Send dispense event to all connected clients"""
-    event_data = f"data: {json.dumps(data)}\n\n"
-    dead_connections = set()
-    for connection in active_connections:
-        try:
-            connection.write(event_data)
-        except:
-            dead_connections.add(connection)
-    # Remove any dead connections
-    active_connections.difference_update(dead_connections)
+    """Send dispense event by adding it to the message queue"""
+    message_queue.put(json.dumps(data))
 
 # Routes
 
@@ -216,17 +210,22 @@ def patient_history(patient_id):
 @app.route('/events')
 def events():
     def event_stream():
-        # Add this connection to active_connections
-        active_connections.add(request)
         try:
             while True:
-                # Keep the connection alive
+                # First, send a ping to keep connection alive
                 yield "data: {\"type\": \"ping\"}\n\n"
-                import time
-                time.sleep(30)
-        finally:
-            # Remove connection when client disconnects
-            active_connections.remove(request)
+
+                # Check for any messages in the queue
+                try:
+                    # Non-blocking queue check
+                    message = message_queue.get_nowait()
+                    yield f"data: {message}\n\n"
+                except Queue.Empty:
+                    pass
+
+                time.sleep(3)  # Check every 3 seconds instead of 30
+        except GeneratorExit:
+            pass
 
     return Response(event_stream(), mimetype='text/event-stream')
 

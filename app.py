@@ -100,16 +100,10 @@ def websocket_endpoint(ws):
             try:
                 # Send periodic ping to keep connection alive
                 ws.send(json.dumps({"type": "ping"}))
-                # Wait for pong or any message
-                message = ws.receive(timeout=10)  # Add timeout
+                # Wait for any message
+                message = ws.receive()
                 if message:
                     print(f"Received from client: {message}")
-                    try:
-                        data = json.loads(message)
-                        if data.get("type") == "pong":
-                            print("Received pong from client")
-                    except json.JSONDecodeError:
-                        print("Received non-JSON message")
             except Exception as e:
                 print(f"Error in WebSocket communication: {e}")
                 break
@@ -124,13 +118,12 @@ def websocket_endpoint(ws):
 def send_dispense_event(data):
     """Send dispense event to all connected WebSocket clients"""
     message = json.dumps(data)
-    print(f"Sending dispense event to {len(websocket_clients)} clients")
     disconnected_clients = set()
 
     for client in websocket_clients:
         try:
             client.send(message)
-            print(f"Successfully sent dispense event to client")
+            print(f"Sent dispense event to client")
         except Exception as e:
             print(f"Error sending to client: {e}")
             disconnected_clients.add(client)
@@ -138,7 +131,6 @@ def send_dispense_event(data):
     # Remove disconnected clients
     for client in disconnected_clients:
         websocket_clients.remove(client)
-        print("Removed disconnected client")
 
 
 # Routes
@@ -264,10 +256,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         create_default_funnels()
-
-    # Use Flask's development server when running locally
-    if os.environ.get('RENDER') != 'true':
-        app.run(debug=True, host='0.0.0.0', port=10000)
-    else:
-        # On Render, let their system handle the server
-        print("Running on Render - using production server")
+    # This makes Flask accessible from other devices on the network
+    app.run(debug=True, host='0.0.0.0', port=10000)

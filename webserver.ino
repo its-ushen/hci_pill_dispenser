@@ -8,8 +8,8 @@ const char *password = "00000000";
 
 // WebSocket server details
 const char *wsHost = "hci-pill-dispenser.onrender.com";
-const int wsPort = 443;     // Change to HTTPS port
-const char *wsPath = "/ws"; // Match Flask's endpoint
+const int wsPort = 443;     // HTTPS port
+const char *wsPath = "/ws"; // WebSocket endpoint
 
 WebSocketsClient webSocket;
 

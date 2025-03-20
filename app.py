@@ -180,6 +180,9 @@ def dispense_prescription(prescription_id):
         ]
     }
 
+    # Add debug logging
+    print("Sending dispense event:", dispense_data)
+
     # Log dispense history for each medication
     for funnel in prescription.funnels:
         history = DispenseHistory(
@@ -195,6 +198,7 @@ def dispense_prescription(prescription_id):
 
     # Send the dispense event to all connected clients
     send_dispense_event(dispense_data)
+    print("Event sent to queue")
 
     return jsonify(dispense_data)
 
@@ -210,21 +214,24 @@ def patient_history(patient_id):
 @app.route('/events')
 def events():
     def event_stream():
+        print("New client connected to events")  # Add connection logging
         try:
             while True:
                 # First, send a ping to keep connection alive
                 yield "data: {\"type\": \"ping\"}\n\n"
+                print("Ping sent")  # Add ping logging
 
-                # Check for any messages in the queue
                 try:
-                    # Non-blocking queue check
                     message = message_queue.get_nowait()
+                    print("Sending message:", message)  # Add message logging
                     yield f"data: {message}\n\n"
                 except Empty:
                     pass
 
-                time.sleep(3)  # Check every 3 seconds instead of 30
+                time.sleep(3)
         except GeneratorExit:
+            # Add disconnection logging
+            print("Client disconnected from events")
             pass
 
     return Response(event_stream(), mimetype='text/event-stream')

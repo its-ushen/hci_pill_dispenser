@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container-fluid py-4">
     <!-- Header Section -->
     <div class="row mb-4">
@@ -8,10 +6,16 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">Pill Dispenser Dashboard</h2>
                 <div>
-                    <a href="{{ url_for('add_patient') }}" class="btn btn-primary me-2">
+                    <a
+                        href="{{ url_for('add_patient') }}"
+                        class="btn btn-primary me-2"
+                    >
                         <i class="fas fa-user-plus"></i> Add Patient
                     </a>
-                    <a href="{{ url_for('add_prescription') }}" class="btn btn-success">
+                    <a
+                        href="{{ url_for('add_prescription') }}"
+                        class="btn btn-success"
+                    >
                         <i class="fas fa-prescription"></i> Add Prescription
                     </a>
                 </div>
@@ -33,7 +37,10 @@
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h6 class="card-title">Configured Funnels</h6>
-                    <h2 class="mb-0">{{ funnels|selectattr('is_configured')|list|length }}/{{ funnels|length }}</h2>
+                    <h2 class="mb-0">
+                        {{ funnels|selectattr('is_configured')|list|length }}/{{
+                        funnels|length }}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -41,7 +48,11 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h6 class="card-title">Active Prescriptions</h6>
-                    <h2 class="mb-0">{{ patients|map(attribute='prescriptions')|map('length')|sum }}</h2>
+                    <h2 class="mb-0">
+                        {{
+                        patients|map(attribute='prescriptions')|map('length')|sum
+                        }}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -62,49 +73,53 @@
             <div class="card h-100">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-funnel-dollar me-2"></i>Medication Funnels
+                        <i class="fas fa-funnel-dollar me-2"></i>Medication
+                        Funnels
                     </h5>
                 </div>
                 <div class="card-body p-0">
                     {% if funnels %}
-                        <div class="list-group list-group-flush">
-                            {% for funnel in funnels %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">{{ funnel.name }}</h6>
-                                            {% if funnel.is_configured %}
-                                                <p class="mb-1 text-success">
-                                                    <i class="fas fa-check-circle me-1"></i>
-                                                    {{ funnel.medication }}
-                                                </p>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-box me-1"></i>
-                                                    {{ funnel.capacity }} pills capacity
-                                                </small>
-                                            {% else %}
-                                                <p class="mb-1 text-muted">
-                                                    <i class="fas fa-times-circle me-1"></i>
-                                                    Not configured
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                        <a href="{{ url_for('configure_funnel', funnel_id=funnel.id) }}" 
-                                           class="btn btn-sm {% if funnel.is_configured %}btn-outline-primary{% else %}btn-primary{% endif %}">
-                                            {% if funnel.is_configured %}
-                                                <i class="fas fa-edit me-1"></i>Edit
-                                            {% else %}
-                                                <i class="fas fa-cog me-1"></i>Configure
-                                            {% endif %}
-                                        </a>
-                                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for funnel in funnels %}
+                        <div class="list-group-item">
+                            <div
+                                class="d-flex justify-content-between align-items-center"
+                            >
+                                <div>
+                                    <h6 class="mb-1">{{ funnel.name }}</h6>
+                                    {% if funnel.is_configured %}
+                                    <p class="mb-1 text-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        {{ funnel.medication }}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-box me-1"></i>
+                                        {{ funnel.capacity }} pills capacity
+                                    </small>
+                                    {% else %}
+                                    <p class="mb-1 text-muted">
+                                        <i class="fas fa-times-circle me-1"></i>
+                                        Not configured
+                                    </p>
+                                    {% endif %}
                                 </div>
-                            {% endfor %}
+                                <a
+                                    href="{{ url_for('configure_funnel', funnel_id=funnel.id) }}"
+                                    class="btn btn-sm {% if funnel.is_configured %}btn-outline-primary{% else %}btn-primary{% endif %}"
+                                >
+                                    {% if funnel.is_configured %}
+                                    <i class="fas fa-edit me-1"></i>Edit {% else
+                                    %} <i class="fas fa-cog me-1"></i>Configure
+                                    {% endif %}
+                                </a>
+                            </div>
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <p class="text-muted mb-0">No funnels available.</p>
-                        </div>
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">No funnels available.</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -115,68 +130,87 @@
             <div class="card h-100">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-users me-2"></i>Patients & Prescriptions
+                        <i class="fas fa-users me-2"></i>Patients &
+                        Prescriptions
                     </h5>
                 </div>
                 <div class="card-body p-0">
                     {% if patients %}
-                        <div class="list-group list-group-flush">
-                            {% for patient in patients %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-user me-2"></i>{{ patient.name }}
-                                        </h6>
-                                        <div>
-                                            <a href="{{ url_for('patient_history', patient_id=patient.id) }}" 
-                                               class="btn btn-sm btn-info me-2">
-                                                <i class="fas fa-history me-1"></i>History
-                                            </a>
+                    <div class="list-group list-group-flush">
+                        {% for patient in patients %}
+                        <div class="list-group-item">
+                            <div
+                                class="d-flex justify-content-between align-items-center mb-2"
+                            >
+                                <h6 class="mb-0">
+                                    <i class="fas fa-user me-2"></i>{{
+                                    patient.name }}
+                                </h6>
+                                <div>
+                                    <a
+                                        href="{{ url_for('patient_history', patient_id=patient.id) }}"
+                                        class="btn btn-sm btn-info me-2"
+                                    >
+                                        <i class="fas fa-history me-1"></i
+                                        >History
+                                    </a>
+                                </div>
+                            </div>
+                            {% if patient.prescriptions %}
+                            <div class="prescriptions-list">
+                                {% for prescription in patient.prescriptions %}
+                                <div class="card bg-light mb-2">
+                                    <div class="card-body py-2">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center"
+                                        >
+                                            <div>
+                                                <span
+                                                    class="badge bg-primary me-2"
+                                                >
+                                                    {{ prescription.dosage }}
+                                                    pills
+                                                </span>
+                                                {% for funnel in
+                                                prescription.funnels %}
+                                                <span
+                                                    class="badge bg-secondary me-1"
+                                                >
+                                                    {{ funnel.medication }}
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                            <button
+                                                class="btn btn-sm btn-success dispense-btn"
+                                                data-prescription-id="{{ prescription.id }}"
+                                            >
+                                                <i class="fas fa-pills me-1"></i
+                                                >Dispense
+                                            </button>
                                         </div>
                                     </div>
-                                    {% if patient.prescriptions %}
-                                        <div class="prescriptions-list">
-                                            {% for prescription in patient.prescriptions %}
-                                                <div class="card bg-light mb-2">
-                                                    <div class="card-body py-2">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <span class="badge bg-primary me-2">
-                                                                    {{ prescription.dosage }} pills
-                                                                </span>
-                                                                {% for funnel in prescription.funnels %}
-                                                                    <span class="badge bg-secondary me-1">
-                                                                        {{ funnel.medication }}
-                                                                    </span>
-                                                                {% endfor %}
-                                                            </div>
-                                                            <button class="btn btn-sm btn-success dispense-btn" 
-                                                                    data-prescription-id="{{ prescription.id }}">
-                                                                <i class="fas fa-pills me-1"></i>Dispense
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <div class="text-center py-2">
-                                            <small class="text-muted">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                No prescriptions for this patient
-                                            </small>
-                                        </div>
-                                    {% endif %}
                                 </div>
-                            {% endfor %}
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    No prescriptions for this patient
+                                </small>
+                            </div>
+                            {% endif %}
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-user-plus me-2"></i>
-                                No patients registered yet. Add your first patient to get started.
-                            </p>
-                        </div>
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-user-plus me-2"></i>
+                            No patients registered yet. Add your first patient
+                            to get started.
+                        </p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -192,7 +226,11 @@
                 <h5 class="modal-title">
                     <i class="fas fa-pills me-2"></i>Dispense Data
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
@@ -202,7 +240,13 @@
                 <pre id="dispenseData" class="bg-light p-3 rounded"></pre>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -210,11 +254,22 @@
 
 <!-- Status indicator -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="connectionStatus" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div
+        id="connectionStatus"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
         <div class="toast-header">
             <strong class="me-auto">Connection Status</strong>
             <small>Just now</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="toast"
+                aria-label="Close"
+            ></button>
         </div>
         <div class="toast-body">
             <i class="fas fa-spinner fa-spin me-2"></i>
@@ -223,92 +278,110 @@
     </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dispenseModal = new bootstrap.Modal(document.getElementById('dispenseModal'));
-    const connectionStatus = new bootstrap.Toast(document.getElementById('connectionStatus'));
-    let eventSource = null;
-    let todayDispenses = 0;
+    document.addEventListener("DOMContentLoaded", function () {
+        const dispenseModal = new bootstrap.Modal(
+            document.getElementById("dispenseModal")
+        );
+        const connectionStatus = new bootstrap.Toast(
+            document.getElementById("connectionStatus")
+        );
+        let ws = null;
+        let todayDispenses = 0;
 
-    // Function to update connection status
-    function updateConnectionStatus(connected) {
-        const statusElement = document.getElementById('connectionStatus');
-        const statusBody = statusElement.querySelector('.toast-body');
-        statusBody.innerHTML = connected 
-            ? '<i class="fas fa-check-circle me-2 text-success"></i>Connected to pill dispenser'
-            : '<i class="fas fa-times-circle me-2 text-danger"></i>Disconnected from pill dispenser';
-        statusElement.classList.toggle('bg-success', connected);
-        statusElement.classList.toggle('bg-danger', !connected);
-        connectionStatus.show();
-    }
-
-    // Function to connect to SSE
-    function connectSSE() {
-        if (eventSource) {
-            eventSource.close();
+        // Function to update connection status
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById("connectionStatus");
+            const statusBody = statusElement.querySelector(".toast-body");
+            statusBody.innerHTML = connected
+                ? '<i class="fas fa-check-circle me-2 text-success"></i>Connected to pill dispenser'
+                : '<i class="fas fa-times-circle me-2 text-danger"></i>Disconnected from pill dispenser';
+            statusElement.classList.toggle("bg-success", connected);
+            statusElement.classList.toggle("bg-danger", !connected);
+            connectionStatus.show();
         }
 
-        eventSource = new EventSource('/events');
-
-        eventSource.onopen = function() {
-            updateConnectionStatus(true);
-        };
-
-        eventSource.onerror = function() {
-            updateConnectionStatus(false);
-            // Attempt to reconnect after 5 seconds
-            setTimeout(connectSSE, 5000);
-        };
-
-        eventSource.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.type === 'ping') {
-                // Ignore ping messages
-                return;
+        // Function to connect to WebSocket
+        function connectWebSocket() {
+            if (ws) {
+                ws.close();
             }
-            
-            // Update today's dispenses count
-            todayDispenses++;
-            document.getElementById('todayDispenses').textContent = todayDispenses;
-            
-            // Display the dispense data in the modal
-            document.getElementById('dispenseData').textContent = JSON.stringify(data, null, 2);
-            dispenseModal.show();
-        };
-    }
 
-    // Connect to SSE when the page loads
-    connectSSE();
+            // Use WSS for production, WS for local development
+            const protocol =
+                window.location.protocol === "https:" ? "wss:" : "ws:";
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    // Handle dispense button clicks
-    document.querySelectorAll('.dispense-btn').forEach(button => {
-        button.addEventListener('click', async function() {
-            const prescriptionId = this.dataset.prescriptionId;
-            const button = this;
-            
-            // Disable button and show loading state
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Dispensing...';
-            
-            try {
-                const response = await fetch(`/prescription/dispense/${prescriptionId}`);
-                const data = await response.json();
-                
-                // The SSE connection will handle displaying the data in the modal
-                // No need to manually show the modal here
-            } catch (error) {
-                console.error('Error dispensing medication:', error);
-                alert('Error dispensing medication. Please try again.');
-            } finally {
-                // Re-enable button and restore original state
-                button.disabled = false;
-                button.innerHTML = '<i class="fas fa-pills me-1"></i>Dispense';
-            }
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function () {
+                console.log("WebSocket Connected");
+                showToast("Connected to server", "success");
+            };
+
+            ws.onerror = function (error) {
+                console.error("WebSocket Error:", error);
+                showToast("Connection error", "error");
+                setTimeout(connectWebSocket, 5000);
+            };
+
+            ws.onclose = function () {
+                console.log("WebSocket Disconnected");
+                showToast("Disconnected from server", "error");
+                setTimeout(connectWebSocket, 5000);
+            };
+
+            ws.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                console.log("Received:", data);
+
+                if (data.type === "ping") {
+                    // Respond to ping with pong
+                    ws.send(JSON.stringify({ type: "pong" }));
+                    return;
+                }
+
+                if (data.type === "dispense") {
+                    // Handle dispense event
+                    showDispenseModal(data);
+                }
+            };
+        }
+
+        // Connect to WebSocket when the page loads
+        connectWebSocket();
+
+        // Handle dispense button clicks
+        document.querySelectorAll(".dispense-btn").forEach((button) => {
+            button.addEventListener("click", async function () {
+                const prescriptionId = this.dataset.prescriptionId;
+                const button = this;
+
+                // Disable button and show loading state
+                button.disabled = true;
+                button.innerHTML =
+                    '<i class="fas fa-spinner fa-spin me-1"></i>Dispensing...';
+
+                try {
+                    const response = await fetch(
+                        `/prescription/dispense/${prescriptionId}`
+                    );
+                    const data = await response.json();
+
+                    // The WebSocket connection will handle displaying the data in the modal
+                    // No need to manually show the modal here
+                } catch (error) {
+                    console.error("Error dispensing medication:", error);
+                    alert("Error dispensing medication. Please try again.");
+                } finally {
+                    // Re-enable button and restore original state
+                    button.disabled = false;
+                    button.innerHTML =
+                        '<i class="fas fa-pills me-1"></i>Dispense';
+                }
+            });
         });
     });
-});
 </script>
-{% endblock %} 
+{% endblock %}

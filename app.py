@@ -97,13 +97,19 @@ def websocket_endpoint(ws):
 
     try:
         while True:
-            # Send periodic ping to keep connection alive
             try:
+                # Send periodic ping to keep connection alive
                 ws.send(json.dumps({"type": "ping"}))
                 # Wait for pong or any message
-                message = ws.receive()
+                message = ws.receive(timeout=10)  # Add timeout
                 if message:
                     print(f"Received from client: {message}")
+                    try:
+                        data = json.loads(message)
+                        if data.get("type") == "pong":
+                            print("Received pong from client")
+                    except json.JSONDecodeError:
+                        print("Received non-JSON message")
             except Exception as e:
                 print(f"Error in WebSocket communication: {e}")
                 break
@@ -111,18 +117,20 @@ def websocket_endpoint(ws):
         print(f"WebSocket error: {e}")
     finally:
         print("WebSocket client disconnected")
-        websocket_clients.remove(ws)
+        if ws in websocket_clients:
+            websocket_clients.remove(ws)
 
 
 def send_dispense_event(data):
     """Send dispense event to all connected WebSocket clients"""
     message = json.dumps(data)
+    print(f"Sending dispense event to {len(websocket_clients)} clients")
     disconnected_clients = set()
 
     for client in websocket_clients:
         try:
             client.send(message)
-            print(f"Sent dispense event to client")
+            print(f"Successfully sent dispense event to client")
         except Exception as e:
             print(f"Error sending to client: {e}")
             disconnected_clients.add(client)
@@ -130,6 +138,7 @@ def send_dispense_event(data):
     # Remove disconnected clients
     for client in disconnected_clients:
         websocket_clients.remove(client)
+        print("Removed disconnected client")
 
 
 # Routes
@@ -255,12 +264,10 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         create_default_funnels()
-    # This makes Flask accessible from other devices on the network
-    # Note: For WebSocket support, we need to use a WSGI server that supports WebSocket
-    from gevent import pywsgi
-    from geventwebsocket.handler import WebSocketHandler
 
-    server = pywsgi.WSGIServer(
-        ('0.0.0.0', 8765), app, handler_class=WebSocketHandler)
-    print("Starting WebSocket server on port 8765...")
-    server.serve_forever()
+    # Use Flask's development server when running locally
+    if os.environ.get('RENDER') != 'true':
+        app.run(debug=True, host='0.0.0.0', port=10000)
+    else:
+        # On Render, let their system handle the server
+        print("Running on Render - using production server")

@@ -8,8 +8,8 @@ const char *password = "00000000";
 
 // WebSocket server details
 const char *wsHost = "hci-pill-dispenser.onrender.com";
-const int wsPort = 8765;  // WebSocket port
-const char *wsPath = "/"; // WebSocket path
+const int wsPort = 443;     // Change to HTTPS port
+const char *wsPath = "/ws"; // Match Flask's endpoint
 
 WebSocketsClient webSocket;
 
@@ -42,6 +42,8 @@ void setup()
     webSocket.beginSSL(wsHost, wsPort, wsPath);
     webSocket.onEvent(webSocketEvent);
     webSocket.setReconnectInterval(5000);
+    // Add these lines for more detailed debugging
+    webSocket.enableHeartbeat(15000, 3000, 2);
     Serial.println("WebSocket initialization complete. Waiting for connection...");
 }
 

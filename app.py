@@ -100,10 +100,36 @@ def websocket_endpoint(ws):
             try:
                 # Send periodic ping to keep connection alive
                 ws.send(json.dumps({"type": "ping"}))
-                # Wait for any message
-                message = ws.receive()
+
+                # Wait for any message with a timeout
+                message = ws.receive(timeout=10.0)
+
                 if message:
                     print(f"Received from client: {message}")
+                    # Parse and handle the message
+                    try:
+                        data = json.loads(message)
+
+                        # Handle different message types from ESP32
+                        if "type" in data:
+                            msg_type = data["type"]
+
+                            # Handle pong message (response to ping)
+                            if msg_type == "pong":
+                                print("Received pong from client")
+
+                            # Handle hello message (initial connection)
+                            elif msg_type == "hello":
+                                print(
+                                    f"Client sent hello: {data.get('message', 'No message')}")
+                                # Send welcome response
+                                ws.send(json.dumps({
+                                    "type": "welcome",
+                                    "message": "Welcome to Pill Dispenser WebSocket Server"
+                                }))
+                    except json.JSONDecodeError:
+                        print(f"Received non-JSON message: {message}")
+
             except Exception as e:
                 print(f"Error in WebSocket communication: {e}")
                 break
@@ -117,9 +143,14 @@ def websocket_endpoint(ws):
 
 def send_dispense_event(data):
     """Send dispense event to all connected WebSocket clients"""
+    # Ensure the message has a "type" field for ESP32 compatibility
+    if "type" not in data:
+        data["type"] = "dispense"
+
     message = json.dumps(data)
     disconnected_clients = set()
 
+    print(f"Sending dispense event to {len(websocket_clients)} client(s)")
     for client in websocket_clients:
         try:
             client.send(message)
@@ -207,6 +238,7 @@ def dispense_prescription(prescription_id):
 
     # Create JSON format for the IoT device
     dispense_data = {
+        "type": "dispense",  # Added explicit type for ESP32 compatibility
         "prescription_id": prescription.id,
         "patient_name": patient.name,
         "timestamp": datetime.utcnow().isoformat(),
@@ -256,5 +288,12 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         create_default_funnels()
-    # This makes Flask accessible from other devices on the network
-    app.run(debug=True, host='0.0.0.0', port=10000)
+
+    # Get port from environment or use default
+    # On Render, the app will be served over HTTPS (port 443) automatically
+    port = int(os.environ.get("PORT", 10000))
+
+    print(f"Starting server on port {port}")
+    print("Note: When deployed to Render, this will be served over HTTPS on port 443 automatically")
+    # Use port 10000 for local development
+    app.run(debug=True, host='0.0.0.0', port=port)

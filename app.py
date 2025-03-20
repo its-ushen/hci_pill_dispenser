@@ -1,19 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import json
-from queue import Queue, Empty
-import time
+from flask_sock import Sock
 
 app = Flask(__name__)
+sock = Sock(app)
+
 # Change this to a secure secret key
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pill_dispenser.db'
 db = SQLAlchemy(app)
 
-# Replace active_connections set with a message queue
-message_queue = Queue()
+# Store WebSocket connections
+websocket_clients = set()
 
 # Database Models
 
@@ -88,9 +89,48 @@ def create_default_funnels():
         db.session.commit()
 
 
+@sock.route('/ws')
+def websocket_endpoint(ws):
+    """WebSocket endpoint for real-time communication"""
+    print("New WebSocket client connected")
+    websocket_clients.add(ws)
+
+    try:
+        while True:
+            # Send periodic ping to keep connection alive
+            try:
+                ws.send(json.dumps({"type": "ping"}))
+                # Wait for pong or any message
+                message = ws.receive()
+                if message:
+                    print(f"Received from client: {message}")
+            except Exception as e:
+                print(f"Error in WebSocket communication: {e}")
+                break
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        print("WebSocket client disconnected")
+        websocket_clients.remove(ws)
+
+
 def send_dispense_event(data):
-    """Send dispense event by adding it to the message queue"""
-    message_queue.put(json.dumps(data))
+    """Send dispense event to all connected WebSocket clients"""
+    message = json.dumps(data)
+    disconnected_clients = set()
+
+    for client in websocket_clients:
+        try:
+            client.send(message)
+            print(f"Sent dispense event to client")
+        except Exception as e:
+            print(f"Error sending to client: {e}")
+            disconnected_clients.add(client)
+
+    # Remove disconnected clients
+    for client in disconnected_clients:
+        websocket_clients.remove(client)
+
 
 # Routes
 
@@ -211,38 +251,16 @@ def patient_history(patient_id):
     return render_template('patient_history.html', patient=patient, history=history)
 
 
-@app.route('/events')
-def events():
-    def event_stream():
-        print("New client connected to events")  # Add connection logging
-        try:
-            while True:
-                # First, send a ping to keep connection alive
-                yield "data: {\"type\": \"ping\"}\n\n"
-                print("Ping sent")  # Add ping logging
-
-                try:
-                    message = message_queue.get_nowait()
-                    print("Sending message:", message)  # Add message logging
-                    yield f"data: {message}\n\n"
-                except Empty:
-                    pass
-
-                time.sleep(3)
-        except GeneratorExit:
-            # Add disconnection logging
-            print("Client disconnected from events")
-            pass
-
-    return Response(event_stream(), mimetype='text/event-stream')
-
-
-# Create the database and tables
-with app.app_context():
-    db.drop_all()  # Drop all tables to recreate with new schema
-    db.create_all()
-    create_default_funnels()
-
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        create_default_funnels()
     # This makes Flask accessible from other devices on the network
-    app.run(debug=True, host='0.0.0.0', port=10000)
+    # Note: For WebSocket support, we need to use a WSGI server that supports WebSocket
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+
+    server = pywsgi.WSGIServer(
+        ('0.0.0.0', 8765), app, handler_class=WebSocketHandler)
+    print("Starting WebSocket server on port 8765...")
+    server.serve_forever()
